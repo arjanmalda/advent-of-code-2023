@@ -1,6 +1,6 @@
 
 
-const fileContent = `
+const input = `
 ...788.............................54.........501...........555.........270.................................521......893....................
 ..../..*963........................*..860......................*....53...../.....................52.................&....347........428*522.
 ............*......41..481+.......462....$..187......678.......420....-....................&115.+...........................+...............
@@ -142,93 +142,63 @@ const fileContent = `
 .......&...625......*.........7*121...........494......=...8......*....@..............................*..........*......998*973.......$.....
 ....691............614...795..........152............120...........238..496...........................477..........................994......
 `
-const fileLines = fileContent.toString().split("\n");
+const engine = fileContent.toString().split("\n");
 
-const symbolRegex = /[^A-Za-z0-9.]/g;
+let sum = 0;
+const symbolRegex = /[^\d.]/; // Regex to match any symbol that is not a number or a period
 
+// Function to check if the given coordinates are within the grid bounds
+function isInBounds(x, y) {
+  return x >= 0 && x < engine.length && y >= 0 && y < engine[x].length;
+}
 
-const symbolsAndNumberPositions = fileLines.map((line) => {
-  const numbersInCurrentLine = line.match(/\d+/g) ?? [];
+// Function to add the number to the sum if it's not already visited
+function addNumberIfValid(x, y) {
+  if (isInBounds(x, y) && /\d/.test(engine[x][y])) {
+    // Find the start of the number
+    while (y > 0 && /\d/.test(engine[x][y - 1])) {
+      y--;
+    }
 
-  const symbolsInCurrentLine = line.match(symbolRegex) ?? [];
+    let numberStr = '';
+    let cellIndex;
 
-  const indexOfSymbols = symbolsInCurrentLine.map((symbol) => line.indexOf(symbol));
+    // Extract the full number starting from this digit
+    while (y < engine[x].length && /\d/.test(engine[x][y])) {
+      cellIndex = `${x},${y}`;
+      if (visited.has(cellIndex)) {
+        return; // If we have already visited this number, return immediately
+      }
+      numberStr += engine[x][y];
+      visited.add(cellIndex); // Mark this cell as visited
+      y++;
+    }
 
-  const startIndexOfNumbers = numbersInCurrentLine.map((number) => line.indexOf(number));
-  const endIndexOfNumbers = numbersInCurrentLine.map((number) => line.indexOf(number) + number.length - 1);
+    console.log(numberStr);
 
-  return {
-      numbers: numbersInCurrentLine.map((number) => parseInt(number, 10)),
-      symbols: symbolsInCurrentLine,
-      indexOfSymbols,
-      startIndexOfNumbers,
-      endIndexOfNumbers
-  };
-})
-
-const adjacentNumbers =[]
-
-for(line of symbolsAndNumberPositions) {
-  const currentLineNumbers = [];
-   line.symbols.forEach((_symbol, index) => {
-        const indexOfSymbols = line.indexOfSymbols[index];
-
-        
-        line.numbers.forEach((number, numberIndex) => {
-            const numberStartIndex = line.startIndexOfNumbers[numberIndex];
-            const numberEndIndex = line.endIndexOfNumbers[numberIndex];
-
-            const isNumberAdjacentToSymbol = numberStartIndex === indexOfSymbols + 1 || numberEndIndex === indexOfSymbols - 1;
-
-            isNumberAdjacentToSymbol ? currentLineNumbers.push(number) : null;
-        });
-    });
-    adjacentNumbers.push(...new Set(currentLineNumbers));
-};
-
-
-symbolsAndNumberPositions.forEach((line, lineIndex) => {
-  
-  const currentLineNumbers = [];
-
-  line.symbols.forEach((_symbol, symbolIndex) => {
-    const symbolPosition = line.indexOfSymbols[symbolIndex];
-  if(lineIndex > 0) {
-    const previousLineNumbers = symbolsAndNumberPositions[lineIndex - 1].numbers;
-
-
-    previousLineNumbers.forEach((number, numberIndex) => {
-      
-
-      const numberStartIndex = symbolsAndNumberPositions[lineIndex - 1].startIndexOfNumbers[numberIndex];
-      const numberEndIndex = symbolsAndNumberPositions[lineIndex - 1].endIndexOfNumbers[numberIndex];
-
-      const isNumberAdjacentToSymbol = symbolPosition > numberStartIndex - 2 && symbolPosition < numberEndIndex + 2;
-
-      isNumberAdjacentToSymbol ? currentLineNumbers.push(number) : null;
-
-    });
+    sum += parseInt(numberStr, 10);
   }
+}
 
-  if(lineIndex < symbolsAndNumberPositions.length - 1) {
-    const nextLineNumbers = symbolsAndNumberPositions[lineIndex + 1].numbers;
+// Set to keep track of visited cells with part numbers
+const visited = new Set();
 
-
-    nextLineNumbers.forEach((number, numberIndex) => {
-    const numberStartIndex = symbolsAndNumberPositions[lineIndex + 1].startIndexOfNumbers[numberIndex];
-    const numberEndIndex = symbolsAndNumberPositions[lineIndex + 1].endIndexOfNumbers[numberIndex];
-
-    const isNumberAdjacentToSymbol = symbolPosition > numberStartIndex - 2 && symbolPosition < numberEndIndex + 2;
-      
-
-    isNumberAdjacentToSymbol ? currentLineNumbers.push(number) : null;
-
-    });
+// Iterate through each cell in the grid to find symbols
+for (let x = 0; x < engine.length; x++) {
+  for (let y = 0; y < engine[x].length; y++) {
+    const cell = engine[x][y];
+    if (symbolRegex.test(cell)) {
+      // Check all adjacent cells for numbers
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          if (i === 0 && j === 0) continue; // Skip the current cell with the symbol
+          const newX = x + i;
+          const newY = y + j;
+          addNumberIfValid(newX, newY);
+        }
+      }
+    }
   }
-  })
-  adjacentNumbers.push(...new Set(currentLineNumbers));
-})
+}
 
-
-
-console.log(adjacentNumbers.reduce((sum, current) => sum + current, 0));
+console.log(sum); // Output the sum of the part numbers
