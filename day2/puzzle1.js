@@ -20,8 +20,7 @@ const games = fileLines.map((line) => {
 
 const possibleGameIds = games
     .filter((game) => {
-        const scores = game.sets.map(()=> ({ red: 0, green: 0, blue: 0 }));
-       
+        const scores = game.sets.map(()=> ({ red: 0, green: 0, blue: 0 }))
         game.sets.forEach((set, setIndex) => {
             set.forEach((cube) => {
                 const [number, color] = cube.split(' ');
