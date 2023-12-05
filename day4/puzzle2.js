@@ -1,4 +1,3 @@
-const { log } = require("console");
 const fs = require("fs");
 
 const fileContent = fs.readFileSync("day4/input.txt");
