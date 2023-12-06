@@ -43,24 +43,25 @@ const maps = {
 
 Object.keys(maps).forEach((mapKey) => {
   const map = maps[mapKey];
-  const updated = new Array(seeds.length).fill(false);
+  map.forEach((line, lineIndex) => {
+    const [destinationRangeStart, sourceRangeStart, rangeLenth] = line;
 
-  map.forEach((line) => {
-    const [destinationRangeStart, sourceRangeStart, rangeLength] = line;
-
+    const sourceRange = [sourceRangeStart];
+    const destinationRange = [destinationRangeStart];
+    let index = 0;
+    while (index < rangeLenth) {
+      sourceRange.push(sourceRangeStart + index);
+      destinationRange.push(destinationRangeStart + index);
+      index++;
+    }
     seeds.forEach((seed, seedIndex) => {
-      if (
-        !updated[seedIndex] &&
-        seed >= sourceRangeStart &&
-        seed < sourceRangeStart + rangeLength
-      ) {
-        const offset = seed - sourceRangeStart;
-        seeds[seedIndex] = destinationRangeStart + offset;
-        updated[seedIndex] = true;
+      if (sourceRange.includes(seed)) {
+        const sourceRangeIndex = sourceRange.indexOf(seed);
+        seeds[seedIndex] = destinationRange[sourceRangeIndex];
       }
     });
   });
 });
 
-const smallestSeed = Math.min(...seeds);
-console.log(smallestSeed);
+const smallesSeed = Math.min(...seeds);
+console.log(smallesSeed);
